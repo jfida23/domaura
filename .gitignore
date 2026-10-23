@@ -24,6 +24,8 @@ coverage/
 .ruff_cache/
 *.tsbuildinfo
 *.log
+test-results/
+playwright-report/
 
 # Editor and operating system files
 .idea/

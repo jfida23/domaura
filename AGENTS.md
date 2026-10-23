@@ -17,6 +17,12 @@ planning workflow; installing the TDD skill does not introduce another planner.
 - REFACTOR: improve structure while keeping tests green. For behavior-preserving
   refactors, establish passing regression coverage before editing; a new failing
   test is needed only when behavior changes.
+- During OpenSpec implementation's REFACTOR step, read and apply
+  `.agents/skills/code-simplifier/SKILL.md` to code touched by the current task
+  after relevant tests pass. Preserve behavior and acceptance scope, allow a
+  no-op review, and rerun focused and regression tests after refinements. This
+  instruction applies to existing tasks too; planning and documentation-only
+  work use their appropriate validation.
 - Run the full application test suite before declaring an implementation change
   complete, plus relevant configured lint, type, build, and acceptance checks.
   Report all observed failures, including pre-existing failures.

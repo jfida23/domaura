@@ -1,0 +1,32 @@
+import { expect, test } from '@playwright/test';
+
+test('compare synthetic rentals and promote a preference to a requirement', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const eligible = page.getByRole('region', { name: 'Eligible comparison' });
+  await expect(eligible.getByRole('article')).toHaveCount(3);
+  await expect(page.getByRole('region', { name: 'Location unverified' })).toContainText('municipal membership is unknown');
+  await page.getByRole('combobox', { name: 'Criterion', exact: true }).selectOption('rent');
+  await page.getByLabel('Maximum amount (CHF / month)').fill('1800');
+  await page.getByRole('button', { name: 'Add criterion' }).click();
+  await page.getByRole('combobox', { name: 'Criterion', exact: true }).selectOption('balcony');
+  await page.getByRole('combobox', { name: 'New criterion tier', exact: true }).selectOption('preference');
+  await page.getByRole('button', { name: 'Add criterion' }).click();
+  const garden = eligible.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Garden apartment' }) });
+  const courtyard = eligible.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Courtyard studio' }) });
+  const hillside = eligible.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Hillside flat' }) });
+  await expect(garden).toContainText('Meets all requirements');
+  await expect(courtyard).toContainText('Preferences: 0 satisfied · 1 unmet · 0 unknown');
+  await expect(hillside).toContainText('Needs verification');
+  await expect(hillside).toContainText('Balcony presence not supplied');
+  const criterion = page.getByRole('listitem').filter({ hasText: 'Balcony present' });
+  await criterion.getByRole('combobox', { name: 'Tier', exact: true }).selectOption('requirement');
+  await expect(courtyard).toContainText('Does not meet all requirements');
+  await expect(garden).toContainText('Meets all requirements');
+  await expect(eligible.getByRole('table')).toHaveCount(3);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+  await page.screenshot({ path: test.info().outputPath('comparison.png'), fullPage: true });
+});

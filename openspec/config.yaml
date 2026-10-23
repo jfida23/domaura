@@ -12,6 +12,7 @@ operations:
     guidance:
       - Follow AGENTS.md and read .agents/skills/test-driven-development/SKILL.md before implementing application behavior.
       - Apply red-green-refactor to each behavior slice, including existing tasks whose wording only mentions verification after implementation.
+      - During REFACTOR after relevant tests pass, read and apply .agents/skills/code-simplifier/SKILL.md to code touched by the current task; preserve behavior and acceptance scope, allow a no-op review, and rerun focused and regression tests after refinements. Use appropriate validation for non-behavior-only tasks.
       - Record the task or scenario, test command, observed expected RED failure, GREEN result, and final suite results in the completion report; never invent evidence.
       - Mark behavior tasks complete only after their acceptance scenarios pass, and run the full application test suite before declaring implementation complete.
       - Use the pre-approved non-behavior exceptions in AGENTS.md with appropriate validation; report exceptions and any checks that could not run.
