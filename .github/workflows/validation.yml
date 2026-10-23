@@ -1,0 +1,22 @@
+name: Repository validation
+
+on:
+  pull_request:
+  push:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  openspec:
+    name: OpenSpec validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate specs and changes
+        run: npx --yes --package=@fission-ai/openspec@1.14.3 openspec validate --all --strict --no-interactive

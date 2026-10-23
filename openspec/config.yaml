@@ -1,0 +1,51 @@
+schema: spec-driven
+
+rules:
+  tasks:
+    - Plan behavior changes as small red-green-refactor slices linked to affected spec requirements and scenarios.
+    - Each behavior slice must run a focused test and observe the expected failure before implementing, then verify the passing test and relevant regression coverage.
+    - Include full-suite verification and concise execution evidence before implementation completion; use appropriate validation for documentation and configuration tasks.
+    - When introducing the first application scaffold, establish documented focused and full-suite test commands and a CI test job before adding domain behavior.
+
+operations:
+  apply:
+    guidance:
+      - Follow AGENTS.md and read .agents/skills/test-driven-development/SKILL.md before implementing application behavior.
+      - Apply red-green-refactor to each behavior slice, including existing tasks whose wording only mentions verification after implementation.
+      - Record the task or scenario, test command, observed expected RED failure, GREEN result, and final suite results in the completion report; never invent evidence.
+      - Mark behavior tasks complete only after their acceptance scenarios pass, and run the full application test suite before declaring implementation complete.
+      - Use the pre-approved non-behavior exceptions in AGENTS.md with appropriate validation; report exceptions and any checks that could not run.
+  archive:
+    guidance:
+      - Review the reported test evidence and acceptance coverage, and disclose missing evidence or checks instead of claiming TDD compliance from passing CI alone.
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+# Example:
+#   context: |
+#     Designs and tasks must cover Windows, macOS, and Linux
+#     Write all artifacts in Spanish
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
