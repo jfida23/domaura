@@ -4,6 +4,7 @@ test('compare synthetic rentals and promote a preference to a requirement', asyn
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
+  await page.getByRole('button', { name: 'Demo examples', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   const eligible = page.getByRole('region', { name: 'Eligible comparison' });
   await expect(eligible.getByRole('article')).toHaveCount(3);

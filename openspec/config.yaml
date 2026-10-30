@@ -19,6 +19,7 @@ operations:
   archive:
     guidance:
       - Review the reported test evidence and acceptance coverage, and disclose missing evidence or checks instead of claiming TDD compliance from passing CI alone.
+      - Before archiving ingest-livit-lugano-rentals, run npm run verify:livit-archive against the current real local dataset and require exit code 0, matching successful live collection and repeat refresh evidence, and at least 10 qualifying listings within the runtime cap of 20. Keep the change unarchived for a shortfall, stale or failed refresh, missing live evidence, or a non-passing check; offline fixtures cannot satisfy this condition.
 
 # Project context (optional)
 # Add only constraints that should guide OpenSpec artifacts and workflows.

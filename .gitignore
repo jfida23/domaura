@@ -27,6 +27,11 @@ coverage/
 test-results/
 playwright-report/
 
+# Local listing collection (never commit real source data)
+.local-data/
+public/data/livit-lugano.json
+public/data/collection-status.json
+
 # Editor and operating system files
 .idea/
 .vscode/
