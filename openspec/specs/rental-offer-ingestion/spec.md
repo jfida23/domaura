@@ -72,7 +72,7 @@ The collector SHALL check recorded source-use conditions and applicable route di
 - **THEN** the collector makes at most one budgeted unconditional fetch or reports a failed check without inventing content
 
 ### Requirement: Stable source identity and reproducible evidence
-Each normalized listing SHALL retain its source identity, canonical detail URL, parser version, observation times, original title/description, and evidence for known values. Alternate-language copies of one source ID SHALL count once. A multi-unit advert SHALL remain one listing. Stored diagnostics and source excerpts SHALL be bounded and local; normalized exports SHALL omit contact fields and copied media.
+Each normalized listing SHALL retain its source identity, canonical detail URL, parser version, observation times, original title/description, and evidence for known values, with contact details removed from retained description text. Alternate-language copies of one source ID SHALL count once. A multi-unit advert SHALL remain one listing. Stored diagnostics and source excerpts SHALL be bounded and local; normalized exports SHALL omit contact fields and copied media.
 
 #### Scenario: Language duplicates
 - **WHEN** two candidate URLs are language variants of the same Livit source identifier
@@ -89,6 +89,10 @@ Each normalized listing SHALL retain its source identity, canonical detail URL, 
 #### Scenario: Evidence retained without contact export
 - **WHEN** a detail page is normalized
 - **THEN** its source URL, observation time, parser version, and supporting field excerpts are retained, while contact details, images, and application-form content are omitted from the exported record
+
+#### Scenario: Contact details anywhere in description
+- **WHEN** an email address or phone number such as `091 123 45 67` appears in description text inside any HTML element
+- **THEN** contact details are omitted from the normalized description regardless of their element or telephone notation, while non-contact description text is retained
 
 ### Requirement: Faithful rent and feature interpretation
 The collector SHALL preserve net rent, additional charges, and gross rent as distinct measures, and expose only explicit exact values as known comparison values. Missing, conflicting, or ambiguous data SHALL remain unknown with a reason. Balcony presence or absence SHALL require explicit evidence; absence from a feature list SHALL NOT establish absence of a balcony.

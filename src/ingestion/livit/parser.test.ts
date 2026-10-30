@@ -26,6 +26,10 @@ it('excludes contact and related-offer text from the original description', () =
   const html = italianHtml.replace('</p></div></div>', '</p><form>contact@example.com</form><p>Per un appuntamento contattare example@example.com</p></div></div>');
   expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento dimostrativo con balcone.');
 });
+it('omits local phone numbers and email addresses inside nested description elements', () => {
+  const html = italianHtml.replace('</p>', '</p><div><span>Contatto: 091 123 45 67; email: contatto@example.ch</span></div>');
+  expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento dimostrativo con balcone.');
+});
 it('ignores labelled fields inside related listings within main', () => {
   const related = '<aside aria-label="Related listings"><div class="w-full"><div><div class="whitespace-nowrap">Tipo di oggetto</div></div><div>Ufficio</div></div></aside>';
   expect(parseListing(italianHtml.replace('</main>', related + '</main>'), listingUrl, observedAt).property.status).toBe('residential');

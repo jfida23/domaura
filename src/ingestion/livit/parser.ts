@@ -7,6 +7,12 @@ import { balconyEvidence } from './features';
 export const parserVersion = '2';
 export const unknown = (reason: string) => ({ status: 'unknown' as const, reason });
 export const cleanText = (value: string) => value.replace(/\s+/g, ' ').trim();
+const contactPatterns = [
+  /[\w.+-]+@[\w.-]+/,
+  /(?:\+|00)\d[\d .()/-]{7,}/,
+  /\b0\d{2}(?:[\s()./-]?\d{3})(?:[\s()./-]?\d{2}){2}\b/,
+];
+const containsContactText = (text: string) => contactPatterns.some(pattern => pattern.test(text));
 export function listingWithdrawn(html: string): boolean {
   const $ = load(html);
   const title = cleanText($('main h1').first().text()).toLowerCase();
@@ -40,9 +46,10 @@ export function parseListing(html: string, url: string, at: string): Offer {
   if (!title || !fields.size || !descriptionHeading.length || !descriptionElement.length) throw new Error('Missing Livit detail structure');
   const original = descriptionElement.clone();
   original.find('script,style,form,iframe').remove();
-  original.find('p,li').each((_i, element) => {
-    if (/[\w.+-]+@[\w.-]+|\+\d[\d ()-]{7,}/.test($(element).text())) $(element).remove();
+  original.find('*').toArray().reverse().forEach(element => {
+    if (containsContactText($(element).text())) $(element).remove();
   });
+  original.contents().filter((_i, node) => node.type === 'text' && containsContactText($(node).text())).remove();
   original.find('p,li,br').prepend(' ');
   const description = cleanText(original.text());
   const property = fields.get(vocabulary.property) ?? '';
