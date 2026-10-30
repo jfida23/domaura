@@ -22,13 +22,23 @@ it('keeps unknown text language instead of inheriting the wrapper', () => {
   const offer = parseListing(italianHtml.replace('Appartamento dimostrativo con balcone.', 'Residence Alpha.'), listingUrl, observedAt);
   expect(offer.source?.description).toEqual({ text: 'Residence Alpha.', language: null });
 });
-it('excludes contact and related-offer text from the original description', () => {
+it('removes email addresses while retaining non-contact description prose', () => {
   const html = italianHtml.replace('</p></div></div>', '</p><form>contact@example.com</form><p>Per un appuntamento contattare example@example.com</p></div></div>');
-  expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento dimostrativo con balcone.');
+  const description = parseListing(html, listingUrl, observedAt).source?.description.text ?? '';
+  expect(description).toBe('Appartamento dimostrativo con balcone. Per un appuntamento contattare');
+  expect(description).not.toContain('example@example.com');
+  expect(description).not.toContain('contact@example.com');
 });
 it('omits local phone numbers and email addresses inside nested description elements', () => {
   const html = italianHtml.replace('</p>', '</p><div><span>Contatto: 091 123 45 67; email: contatto@example.ch</span></div>');
-  expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento dimostrativo con balcone.');
+  const description = parseListing(html, listingUrl, observedAt).source?.description.text ?? '';
+  expect(description).toBe('Appartamento dimostrativo con balcone.Contatto: ; email:');
+  expect(description).not.toContain('091 123 45 67');
+  expect(description).not.toContain('contatto@example.ch');
+});
+it('preserves listing copy when a paragraph also contains a phone number', () => {
+  const html = italianHtml.replace('Appartamento dimostrativo con balcone.', 'Appartamento luminoso con balcone. Chiamare 091 123 45 67');
+  expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento luminoso con balcone. Chiamare');
 });
 it('ignores labelled fields inside related listings within main', () => {
   const related = '<aside aria-label="Related listings"><div class="w-full"><div><div class="whitespace-nowrap">Tipo di oggetto</div></div><div>Ufficio</div></div></aside>';

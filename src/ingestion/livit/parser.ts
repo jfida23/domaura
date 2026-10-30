@@ -7,12 +7,10 @@ import { balconyEvidence } from './features';
 export const parserVersion = '2';
 export const unknown = (reason: string) => ({ status: 'unknown' as const, reason });
 export const cleanText = (value: string) => value.replace(/\s+/g, ' ').trim();
-const contactPatterns = [
-  /[\w.+-]+@[\w.-]+/,
-  /(?:\+|00)\d[\d .()/-]{7,}/,
-  /\b0\d{2}(?:[\s()./-]?\d{3})(?:[\s()./-]?\d{2}){2}\b/,
-];
-const containsContactText = (text: string) => contactPatterns.some(pattern => pattern.test(text));
+const redactContactText = (text: string) => text
+  .replace(/[\w.+-]+@[\w.-]+/g, '')
+  .replace(/(?:\+|00)\d[\d .()/-]{7,}/g, '')
+  .replace(/\b0\d{2}(?:[\s()./-]?\d{3})(?:[\s()./-]?\d{2}){2}\b/g, '');
 export function listingWithdrawn(html: string): boolean {
   const $ = load(html);
   const title = cleanText($('main h1').first().text()).toLowerCase();
@@ -46,10 +44,13 @@ export function parseListing(html: string, url: string, at: string): Offer {
   if (!title || !fields.size || !descriptionHeading.length || !descriptionElement.length) throw new Error('Missing Livit detail structure');
   const original = descriptionElement.clone();
   original.find('script,style,form,iframe').remove();
-  original.find('*').toArray().reverse().forEach(element => {
-    if (containsContactText($(element).text())) $(element).remove();
+  const textNodes = [
+    ...original.contents().toArray(),
+    ...original.find('*').contents().toArray(),
+  ];
+  textNodes.forEach(node => {
+    if (node.type === 'text') node.data = redactContactText(node.data);
   });
-  original.contents().filter((_i, node) => node.type === 'text' && containsContactText($(node).text())).remove();
   original.find('p,li,br').prepend(' ');
   const description = cleanText(original.text());
   const property = fields.get(vocabulary.property) ?? '';
