@@ -40,6 +40,15 @@ it('preserves listing copy when a paragraph also contains a phone number', () =>
   const html = italianHtml.replace('Appartamento dimostrativo con balcone.', 'Appartamento luminoso con balcone. Chiamare 091 123 45 67');
   expect(parseListing(html, listingUrl, observedAt).source?.description.text).toBe('Appartamento luminoso con balcone. Chiamare');
 });
+it('redacts phone numbers split across inline description elements', () => {
+  const html = italianHtml.replace(
+    'Appartamento dimostrativo con balcone.',
+    'Appartamento dimostrativo con balcone. Contatto: <span>091 </span><b>123</b><span> 45 67</span>',
+  );
+  const description = parseListing(html, listingUrl, observedAt).source?.description.text ?? '';
+  expect(description).toBe('Appartamento dimostrativo con balcone. Contatto:');
+  expect(description).not.toContain('091 123 45 67');
+});
 it('ignores labelled fields inside related listings within main', () => {
   const related = '<aside aria-label="Related listings"><div class="w-full"><div><div class="whitespace-nowrap">Tipo di oggetto</div></div><div>Ufficio</div></div></aside>';
   expect(parseListing(italianHtml.replace('</main>', related + '</main>'), listingUrl, observedAt).property.status).toBe('residential');

@@ -12,7 +12,7 @@ The Livit parser clones the listing's `.rich-text` description and currently rem
 
 ## Decisions
 
-- Sanitize the cloned description content before flattening it to text. Detection must not depend on `p` or `li` containers, so contact-bearing content in nested `div`, `span`, and other markup is handled too.
+- Reconstruct the cloned description's text with block boundaries before sanitizing it. Matching the combined text catches contact details split across inline elements and preserves all surrounding words.
 - Extend telephone recognition to Swiss local formats such as `091 123 45 67`, while retaining supported international formats and email detection. Keep the change scoped to description extraction.
 - Add parser tests using real fixture parsing with contact strings in nested description markup; assert the exported description retains unrelated listing text and omits the contact details.
 

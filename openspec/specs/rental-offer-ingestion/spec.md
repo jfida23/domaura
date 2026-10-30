@@ -94,6 +94,10 @@ Each normalized listing SHALL retain its source identity, canonical detail URL, 
 - **WHEN** an email address or phone number such as `091 123 45 67` appears in description text inside any HTML element
 - **THEN** contact details are omitted from the normalized description regardless of their element or telephone notation, while non-contact description text is retained
 
+#### Scenario: Contact details split across inline elements
+- **WHEN** a phone number or email address is split across adjacent inline HTML elements in the description
+- **THEN** the contact detail is omitted from the normalized description while surrounding non-contact text is retained
+
 ### Requirement: Faithful rent and feature interpretation
 The collector SHALL preserve net rent, additional charges, and gross rent as distinct measures, and expose only explicit exact values as known comparison values. Missing, conflicting, or ambiguous data SHALL remain unknown with a reason. Balcony presence or absence SHALL require explicit evidence; absence from a feature list SHALL NOT establish absence of a balcony.
 

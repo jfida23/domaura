@@ -44,15 +44,8 @@ export function parseListing(html: string, url: string, at: string): Offer {
   if (!title || !fields.size || !descriptionHeading.length || !descriptionElement.length) throw new Error('Missing Livit detail structure');
   const original = descriptionElement.clone();
   original.find('script,style,form,iframe').remove();
-  const textNodes = [
-    ...original.contents().toArray(),
-    ...original.find('*').contents().toArray(),
-  ];
-  textNodes.forEach(node => {
-    if (node.type === 'text') node.data = redactContactText(node.data);
-  });
   original.find('p,li,br').prepend(' ');
-  const description = cleanText(original.text());
+  const description = cleanText(redactContactText(original.text()));
   const property = fields.get(vocabulary.property) ?? '';
   const addressText = fields.get(vocabulary.address) ?? '';
   const addressMatch = /^(.*?)\s+(\d+[a-zA-Z]?(?:[-/]\d+[a-zA-Z]?)?)(?:\s+\/\s+[\p{L}][\p{L}'’ .-]*)?\s+(\d{4})\s+(.+)$/u.exec(addressText);
