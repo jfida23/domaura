@@ -1,0 +1,31 @@
+import type { Address, Geography } from '../domain/model';
+import type { Getter } from './http/cache';
+import { addressKey } from './records';
+import { officialResource } from './official-url';
+const unknown = (evidence: string): Geography => ({ status: 'unknown', basis: 'none', evidence });
+const normalized = (text: string) => text.normalize('NFKC').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+type SearchResult = { attrs?: { origin?: string; label?: string; featureId?: string; links?: { href?: string }[] }; links?: { href?: string }[] };
+type Feature = { featureId?: string; attributes?: { egid?: string; strname?: string[]; deinr?: string; dplz4?: number; dplzname?: string; ggdenr?: number; ggdename?: string; gexpdat?: string } };
+export async function verifyAddress(address: Address | undefined, get: Getter, at: string): Promise<Geography> {
+  if (!address || !address.street || !address.number || !/^\d{4}$/.test(address.postcode)) return unknown('Complete street, house number and postcode required.');
+  const query = new URLSearchParams({ type: 'locations', origins: 'address', searchText: `${address.street} ${address.number} ${address.postcode}`, lang: 'it' });
+  const response = await get(`https://api3.geo.admin.ch/rest/services/api/SearchServer?${query}`);
+  if (response.status !== 200) throw new Error(`Municipal verification service HTTP ${response.status}`);
+  const search = JSON.parse(response.body) as { results?: SearchResult[] };
+  if (!Array.isArray(search.results)) throw new Error('Invalid municipal search service response');
+  const prefix = normalized(`${address.street} ${address.number} ${address.postcode}`);
+  const matches = search.results.filter(result => result.attrs?.origin === 'address' && typeof result.attrs.label === 'string' && (normalized(result.attrs.label) + ' ').startsWith(prefix + ' '));
+  if (matches.length !== 1) return unknown('No unique exact official address match.');
+  const match = matches[0];
+  const links = [...(match.links ?? []), ...(match.attrs?.links ?? [])];
+  const urls = [...new Set(links.flatMap(link => typeof link.href === 'string' && officialResource(link.href) ? [officialResource(link.href)!] : []))];
+  if (urls.length !== 1) return unknown('No unique safe official building-register resource.');
+  const url = urls[0]; const result = await get(url);
+  if (result.status !== 200) throw new Error(`Municipal verification service HTTP ${result.status}`);
+  const feature = (JSON.parse(result.body) as { feature?: Feature }).feature;
+  const attrs = feature?.attributes;
+  if (!attrs || !Array.isArray(attrs.strname) || typeof attrs.deinr !== 'string' || !Number.isInteger(attrs.dplz4) || !attrs.dplzname || !attrs.egid || !Number.isInteger(attrs.ggdenr) || !attrs.ggdename || !feature?.featureId || feature.featureId !== match.attrs?.featureId || !url.includes('/' + feature.featureId + '?')) return unknown('Missing or conflicting official building fields.');
+  const verifiedAddress = { street: attrs.strname[0], number: attrs.deinr, postcode: String(attrs.dplz4), locality: attrs.dplzname };
+  if (attrs.strname.length !== 1 || addressKey(verifiedAddress) !== addressKey(address)) return unknown('Official building address conflicts with the advertised address.');
+  return { status: attrs.ggdenr === 5192 ? 'inside' : 'outside', basis: 'municipality-id', evidence: `Exact official address; BFS municipality ${attrs.ggdenr} (${attrs.ggdename}). Location only; advertisement attributes and availability are not verified.`, verification: { featureId: feature.featureId, egid: String(attrs.egid), url, municipalityId: attrs.ggdenr!, municipalityName: attrs.ggdename, address: verifiedAddress, exportDate: attrs.gexpdat ?? null, verifiedAt: at } };
+}

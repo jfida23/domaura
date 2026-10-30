@@ -21,6 +21,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Exercise offline Livit collector
+        run: npm run collect:livit -- --offline --data-dir "${{ runner.temp }}/domaura-offline" --output-dir "${{ runner.temp }}/domaura-offline/export"
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

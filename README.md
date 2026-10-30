@@ -3,7 +3,8 @@
 A web app for exploring the housing market in a local area.
 
 The current shell focuses on comparing rental housing within Lugano municipality
-against personal requirements and preferences, using synthetic data.
+against personal requirements and preferences, using a bounded local Livit
+collection or explicitly selected synthetic examples.
 
 ## Direction
 
@@ -13,16 +14,17 @@ comparisons, and market trends. These are possibilities, not committed features.
 
 ## Open decisions
 
-- Data sources, access rights, quality, and update frequency.
-- Reliable municipal evidence for real offers.
+- Additional sources, public reuse rights, and scheduled refreshes.
+- Broader coverage for incomplete or ambiguous addresses.
 - Additional criteria beyond the starter catalogue.
 - Hosting and a separately scoped live-data release.
 
 ## Repository status
 
-The Lugano rental comparison is a local demonstration shell using synthetic
-offers, not a live rental search service. No source integration or deployment is
-included. Criteria live in browser memory and reset on reload.
+The Livit integration is a manually refreshed, private local pilot capped at 20
+verified residential rental adverts in Lugano municipality. It is not a complete
+market feed. Criteria live in browser memory and reset on reload. Public hosting
+and redistribution are outside the recorded source-use conditions.
 
 ## Local application
 
@@ -53,6 +55,12 @@ configured. The OpenSpec validation job checks planning artifacts separately.
 
 ## Comparing the examples
 
+Normal startup selects **Collected listings**, loading the local export. It shows
+loading, a successful empty collection and unavailable/invalid data distinctly.
+Choose **Demo examples** explicitly to use the invented fixtures below. Switching
+back preserves active criteria and removes the synthetic offers. No missing
+collection is automatically replaced with examples.
+
 Add **Maximum monthly base rent** as Must have and enter an inclusive maximum
 in **CHF / month**. Base rent excludes additional charges and is not total housing
 cost. Add **Balcony present** as Nice to have to express desired feature presence.
@@ -80,6 +88,59 @@ Missing attributes remain unknown. Synthetic fixture evidence does not establish
 availability, actual rents, municipal coverage, or real-world suitability.
 See [offer contracts and evidence](docs/offer-contract.md) and the
 [implementation evidence](docs/lugano-verification.md).
+
+## Collecting Livit locally
+
+Read [source conditions and collection instructions](docs/livit-collection.md).
+Prepare `.local-data/livit-manifest.json` with at most 40 reviewed detail URLs
+and their `discoveryEvidence`, plus `.local-data/livit-policy.json` recording
+the permitted private noncommercial use. Then run:
+
+```sh
+npm run collect:livit -- --manifest .local-data/livit-manifest.json
+```
+
+This refreshes retained accepted listings first and writes at most 20 verified
+Lugano residential rentals to `public/data/livit-lugano.json`. Fewer or zero
+qualifying adverts is a valid result. It keeps SQLite and short-lived HTML in
+`.local-data/`; failed mandatory stages preserve the previous export and update
+`public/data/collection-status.json`. All these local files are ignored by Git.
+Run the same command to refresh; it does not start a scheduler.
+
+This change can be archived only after a live collection and a repeat successful
+live refresh each contain at least 10 distinct qualifying listings. The runtime
+cap remains 20, so a valid larger snapshot is retained. After collection finishes,
+check current readiness with:
+
+```sh
+npm run verify:livit-archive
+```
+
+The check reads the dataset, status and SQLite run records without modifying
+them. It reports the shortfall and exits nonzero for fewer than 10, invalid
+entries, stale evidence, failed refreshes or missing live-run provenance. A valid
+collection below this minimum remains visible in the app while acceptance stays
+incomplete. The reported denominator is the minimum of 10. Run verification after
+the collector exits to avoid competing with SQLite writes. Offline fixture runs
+cannot establish live archive readiness.
+
+Exercise the entire pipeline without external requests using fictional data:
+
+```sh
+npm run collect:livit -- --offline --data-dir .local-data/offline --output-dir .local-data/offline/export
+npm test -- src/ingestion/cli.test.ts
+npm test -- src/ingestion
+```
+
+The offline export is separate from the application's real-data export. Source
+text stays in its original language; the comparison interface remains English.
+Use **Original description** on a collected card to inspect its wording and
+language. Page locale and text language are shown separately, including
+undetermined language. Source links identify the actual fetched variant. Check
+times, observations older than 24 hours and failed refreshes are visible;
+municipal evidence verifies location only, without confirming availability.
+The development server reads the latest export; rebuild a preview after collecting
+again because `npm run build` copies the current local snapshot.
 
 ## Development workflow
 
